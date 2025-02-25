@@ -22,6 +22,7 @@ export class GeminiService {
     }
     
     this.genAI = new GoogleGenerativeAI(API_KEY);
+    // Fix: Use the correct model name
     this.model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
   }
 
