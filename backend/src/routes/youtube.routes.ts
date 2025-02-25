@@ -1,9 +1,14 @@
-import { Router } from 'express';
-import { getVideoComments } from '../controllers/youtube.controller';
+import { Router, Request, Response } from 'express';
+import { getVideoComments, testAPI } from '../controllers/youtube.controller';
 
 const router = Router();
 
-// Fix: Use the correct router method
-router.post('/comments', getVideoComments);
+router.post('/comments', (req: Request, res: Response) => {
+    getVideoComments(req, res);
+});
+
+router.get('/test', (req: Request, res: Response) => {
+    testAPI(req, res);
+});
 
 export default router;
