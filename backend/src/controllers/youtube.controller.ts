@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { YouTubeService, Comment } from '../services/youtube.service';
 import { GeminiService, SentimentAnalysisResult } from '../services/gemini.service';
+import VideoAnalysis from '../models/VideoAnalysis.model';
 
 const youtubeService = new YouTubeService();
 const geminiService = new GeminiService();
@@ -54,6 +55,18 @@ export const getVideoComments = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Video URL is required' });
     }
     
+    // Check if analysis exists
+    const videoId = youtubeService.extractVideoId(videoUrl);
+    const existingAnalysis = await VideoAnalysis.findOne({ videoId });
+    
+    if (existingAnalysis) {
+      return res.status(200).json({
+        success: true,
+        message: 'Retrieved from cache',
+        data: existingAnalysis
+      });
+    }
+    
     // Fetch comments from YouTube
     console.log(`Fetching comments for ${videoUrl}...`);
     const comments = await youtubeService.fetchComments(videoUrl);
@@ -101,10 +114,19 @@ export const getVideoComments = async (req: Request, res: Response) => {
 
     const topKeywords = getTopKeywords(comments);
 
-    return res.status(200).json({
-      success: true,
+    // Mask usernames before storing
+    const maskedComments = analyzedComments.map(comment => ({
+      ...comment,
+      maskedAuthor: `user_${comment.authorDisplayName.slice(0, 2)}${Math.random().toString(36).slice(2, 8)}`
+    }));
+
+    // Store in MongoDB
+    const videoAnalysis = new VideoAnalysis({
+      videoId,
+      videoUrl,
       totalComments: comments.length,
       analyzedComments: analyzedComments.length,
+      comments: maskedComments,
       insights: {
         monthlyDistribution,
         sentimentAnalysis: {
@@ -112,8 +134,15 @@ export const getVideoComments = async (req: Request, res: Response) => {
           percentages: sentimentPercentages
         },
         topKeywords
-      },
-      data: analyzedComments
+      }
+    });
+
+    await videoAnalysis.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Analysis completed and stored',
+      data: videoAnalysis
     });
     
   } catch (error: any) {

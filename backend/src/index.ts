@@ -2,6 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import youtubeRoutes from './routes/youtube.routes';
+import { connectDB } from './utils/database';
+
+connectDB();
 
 dotenv.config();
 
