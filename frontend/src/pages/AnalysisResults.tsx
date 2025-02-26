@@ -84,7 +84,9 @@ export default function AnalysisResults() {
   // Convert monthly distribution object to array for chart
   const monthlyData: MonthlyDataItem[] = Object.entries(analysisData.insights.monthlyDistribution).map(([month, count]) => {
     // Convert YYYY-MM to readable month name
-    const [year, monthNum] = month.split('-')
+    // Fix for the first error - either use the year variable or destructure only what you need
+    const [, monthNum] = month.split('-')  // Remove 'year' if you're not using it
+
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     const monthName = monthNames[parseInt(monthNum) - 1]
     
@@ -248,7 +250,7 @@ export default function AnalysisResults() {
           <div className="bg-[#1c2431] rounded-lg p-6">
             <h2 className="text-xl font-bold mb-6">Top Keywords</h2>
             <div className="flex flex-wrap gap-2">
-              {keywordsData.map(([word, count], index) => (
+              {keywordsData.map(([word], index) => (
                 <div 
                   key={index} 
                   className="bg-[#232b3a] px-3 py-2 rounded-lg text-sm"
