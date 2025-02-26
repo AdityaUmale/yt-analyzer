@@ -1,6 +1,4 @@
-/**
- * Simple rate limiter for API calls
- */
+
 export async function rateLimitedBatch<T, R>(
     items: T[],
     processFn: (item: T) => Promise<R>,

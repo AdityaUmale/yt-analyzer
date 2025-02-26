@@ -72,7 +72,7 @@ export const getVideoComments = async (req: Request, res: Response) => {
     const comments = await youtubeService.fetchComments(videoUrl);
     
     // Limit the number of comments to analyze to avoid excessive API usage
-    const commentsToAnalyze = comments.slice(0, 100); // Analyze first 100 comments
+    const commentsToAnalyze = comments.slice(0, 20); // Start with 20 comments for testing
     
     // Prepare comments for sentiment analysis
     const commentData = commentsToAnalyze.map(comment => ({

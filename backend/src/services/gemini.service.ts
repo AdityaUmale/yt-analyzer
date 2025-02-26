@@ -22,36 +22,38 @@ export class GeminiService {
     }
     
     this.genAI = new GoogleGenerativeAI(API_KEY);
-    // Fix: Use the correct model name
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
-  }
+    this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+}
 
-  /**
-   * Analyze the sentiment of a single comment
-   */
-  async analyzeSentiment(commentText: string, videoContext: string): Promise<SentimentAnalysisResult> {
+async analyzeSentiment(commentText: string, videoContext: string): Promise<SentimentAnalysisResult> {
     try {
       const prompt = `
-      Video Context: ${videoContext}
-      
-      Comment: "${commentText}"
-      
-      Task: Analyze whether this comment agrees with the video content, disagrees with it, or is neutral/unrelated.
-      
-      Return ONLY a JSON object with the following structure:
+      You are a YouTube comment sentiment analyzer. Analyze this comment and determine if it expresses agreement or disagreement with the video content.
+
+      Comment to analyze: "${commentText}"
+
+      Rules for classification:
+      - agree: Comments showing support, praise, appreciation, positive feedback, or agreement
+      - disagree: Comments showing criticism, disapproval, negative feedback, or disagreement
+      - neutral: Comments that are factual, questions, or unrelated to the content
+
+      Examples:
+      - "This is so helpful, exactly what I needed!" → agree
+      - "I don't think this is correct, you're missing important points" → disagree
+      - "What software are you using?" → neutral
+
+      Respond with ONLY a JSON object in this format:
       {
         "sentiment": "agree" or "disagree" or "neutral",
-        "confidence": [a number between 0 and 1]
-      }
-      
-      Don't include any explanations, just the JSON object.
-      `;
+        "confidence": [number between 0 and 1]
+      }`;
 
       const result = await this.model.generateContent(prompt);
       const response = await result.response;
       const textResult = response.text();
       
-      // Extract the JSON object from the response
+      console.log('Raw Gemini response:', textResult); // Debug log
+      
       const jsonMatch = textResult.match(/\{[\s\S]*\}/);
       
       if (!jsonMatch) {
@@ -65,6 +67,16 @@ export class GeminiService {
       
       const jsonResult = JSON.parse(jsonMatch[0]);
       
+      // Validate the response
+      if (!['agree', 'disagree', 'neutral'].includes(jsonResult.sentiment)) {
+        console.error('Invalid sentiment value:', jsonResult.sentiment);
+        return {
+          text: commentText,
+          sentiment: 'neutral',
+          confidence: 0.5
+        };
+      }
+
       return {
         text: commentText,
         sentiment: jsonResult.sentiment,
@@ -72,14 +84,13 @@ export class GeminiService {
       };
     } catch (error) {
       console.error('Error analyzing sentiment:', error);
-      // Default to neutral sentiment in case of error
       return {
         text: commentText,
         sentiment: 'neutral',
         confidence: 0.5
       };
     }
-  }
+}
 
   /**
    * Batch analyze multiple comments for efficiency
@@ -96,8 +107,8 @@ export class GeminiService {
     const batchResults = await rateLimitedBatch(
       comments,
       analyzeComment,
-      10, // Process 10 comments at a time
-      1000 // Wait 1 second between batches
+      5, // Process 5 comments at a time
+      2000 // Wait 2 seconds between batches
     );
     
     // Convert results to the expected format

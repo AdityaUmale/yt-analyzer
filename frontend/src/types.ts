@@ -1,8 +1,4 @@
-// src/types.ts
 
-/**
- * Represents a YouTube comment with sentiment analysis
- */
 export interface Comment {
     maskedAuthor: string;
     text: string;
@@ -13,16 +9,12 @@ export interface Comment {
     _id: string;
   }
   
-  /**
-   * Monthly distribution of comments
-   */
+ 
   export interface MonthlyDistribution {
     [key: string]: number;  // Format: "YYYY-MM": count
   }
   
-  /**
-   * Sentiment analysis results
-   */
+ 
   export interface SentimentAnalysis {
     raw: {
       agree: number;
@@ -36,9 +28,7 @@ export interface Comment {
     };
   }
   
-  /**
-   * Complete video analysis including comments and insights
-   */
+ 
   export interface VideoAnalysis {
     _id: string;
     videoId: string;
