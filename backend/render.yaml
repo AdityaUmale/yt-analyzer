@@ -2,8 +2,14 @@ services:
   - type: web
     name: yt-analyzer-backend
     runtime: node
-    buildCommand: npm install && npm run build
+    buildCommand: ./build.sh
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: MONGODB_URI
+        sync: false
+      - key: YOUTUBE_API_KEY
+        sync: false
