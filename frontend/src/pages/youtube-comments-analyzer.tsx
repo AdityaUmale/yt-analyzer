@@ -22,21 +22,19 @@ export default function YouTubeCommentsAnalyzer() {
     setError("")
 
     try {
-      const response = await axios.post("http://localhost:3000/api/youtube/comments", {
+      const response = await axios.post("https://yt-analyzer-2.onrender.com/api/youtube/comments", {
         videoUrl: url
       })
 
       if (response.data.success) {
-        // Store analysis ID or the entire data in localStorage if needed
         localStorage.setItem("videoAnalysis", JSON.stringify(response.data.data))
-        // Navigate to results page
         navigate("/results")
       } else {
         setError("Analysis failed. Please try again.")
       }
     } catch (err) {
       console.error("Error analyzing video:", err)
-      setError("An error occurred. Please try again.")
+      setError("An error occurred while connecting to the server. Please try again later.")
     } finally {
       setIsLoading(false)
     }
